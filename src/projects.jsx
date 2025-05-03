@@ -1,173 +1,168 @@
+import { useState, useRef } from 'react';
+import { motion, useMotionTemplate, useMotionValue, useSpring, animate } from 'framer-motion';
+import { FiGithub, FiExternalLink, FiArrowRight } from 'react-icons/fi';
 
-import { useState } from 'react';
-import { FiGithub, FiExternalLink } from 'react-icons/fi';
-import { motion } from 'framer-motion';
+const ProjectCard = ({ project }) => {
+  const [isFlipped, setIsFlipped] = useState(false);
+  const cardRef = useRef(null);
+  
+  // 3D tilt effect
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const xSpring = useSpring(x, { stiffness: 300, damping: 20 });
+  const ySpring = useSpring(y, { stiffness: 300, damping: 20 });
+  const transform = useMotionTemplate`rotateX(${ySpring}deg) rotateY(${xSpring}deg)`;
+
+  const handleMouseMove = (e) => {
+    if (!cardRef.current) return;
+    
+    const rect = cardRef.current.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const rotateY = ((mouseX - width / 2) / width) * 20;
+    const rotateX = ((mouseY - height / 2) / height) * -20;
+    
+    x.set(rotateX);
+    y.set(rotateY);
+  };
+
+  const handleMouseLeave = () => {
+    animate(x, 0, { type: 'spring', stiffness: 300, damping: 20 });
+    animate(y, 0, { type: 'spring', stiffness: 300, damping: 20 });
+  };
+
+  return (
+    <motion.div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      onClick={() => setIsFlipped(!isFlipped)}
+      style={{ transform, transformStyle: 'preserve-3d' }}
+      className="cursor-pointer perspective-1000 h-96 w-full"
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.97 }}
+    >
+      <motion.div
+        className="relative w-full h-full transition-transform duration-500"
+        style={{ transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}
+        animate={{ rotateY: isFlipped ? 180 : 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        {/* Front Side */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900 to-indigo-800 rounded-3xl p-6 backface-hidden flex flex-col justify-between">
+          <div>
+            <h3 className="text-2xl font-bold text-white mb-2">{project.title}</h3>
+            <p className="text-purple-200">{project.shortDescription}</p>
+          </div>
+          <div className="flex justify-between items-center">
+            <div className="flex gap-2">
+              {project.tags.slice(0, 3).map(tag => (
+                <span key={tag} className="px-3 py-1 bg-white/10 text-white/80 rounded-full text-sm">
+                  {tag}
+                </span>
+              ))}
+            </div>
+            <button className="p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition">
+              <FiArrowRight />
+            </button>
+          </div>
+        </div>
+
+        {/* Back Side */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-800 to-purple-900 rounded-3xl p-6 backface-hidden flex flex-col justify-between rotate-y-180">
+          <div>
+            <h3 className="text-2xl font-bold text-white mb-4">{project.title}</h3>
+            <p className="text-purple-200 mb-4">{project.fullDescription}</p>
+            <div className="flex flex-wrap gap-2 mb-6">
+              {project.tags.map(tag => (
+                <span key={tag} className="px-3 py-1 bg-white/10 text-white/80 rounded-full text-sm">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <a 
+              href={project.githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition"
+              onClick={e => e.stopPropagation()}
+            >
+              <FiGithub /> Code
+            </a>
+            <a 
+              href={project.liveUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 bg-white text-purple-900 rounded-lg hover:bg-white/90 transition"
+              onClick={e => e.stopPropagation()}
+            >
+              <FiExternalLink /> Live Demo
+            </a>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
 
 const ProjectsSection = () => {
-  const [activeFilter, setActiveFilter] = useState('All');
-  
   const projects = [
     {
       id: 1,
-      title: "E-Commerce Platform",
-      description: "A full-featured online store with cart functionality, user authentication, and payment processing.",
-      tags: ["React", "Node.js", "MongoDB", "Stripe"],
-      image: "/ecommerce.jpg",
-      github: "https://github.com",
-      live: "https://example.com",
-      category: "Web App"
+      title: "Neon Dreams",
+      shortDescription: "Interactive generative art experience",
+      fullDescription: "A WebGL-powered art generator that creates unique neon landscapes using procedural algorithms. Users can interact with parameters to create their own digital artworks.",
+      tags: ["Three.js", "GLSL", "React", "Generative Art"],
+      githubUrl: "#",
+      liveUrl: "#"
     },
     {
       id: 2,
-      title: "Portfolio Website",
-      description: "A responsive portfolio website built with modern design principles and animations.",
-      tags: ["React", "Tailwind CSS", "Framer Motion"],
-      image: "/portfolio.jpg",
-      github: "https://github.com",
-      live: "https://example.com",
-      category: "Website"
+      title: "Audio Visualizer",
+      shortDescription: "Real-time music visualization",
+      fullDescription: "A browser-based audio analyzer that creates dynamic visual representations of music using the Web Audio API. Features multiple visualization modes and custom color schemes.",
+      tags: ["Web Audio API", "Canvas", "React", "D3.js"],
+      githubUrl: "#",
+      liveUrl: "#"
     },
     {
       id: 3,
-      title: "Task Management App",
-      description: "A productivity application for organizing tasks with drag-and-drop functionality.",
-      tags: ["React", "Firebase", "React DnD"],
-      image: "/taskapp.jpg",
-      github: "https://github.com",
-      live: "https://example.com",
-      category: "Web App"
-    },
-    {
-      id: 4,
-      title: "Weather Dashboard",
-      description: "Real-time weather information with 5-day forecasts and location search.",
-      tags: ["JavaScript", "API", "CSS"],
-      image: "/weather.jpg",
-      github: "https://github.com",
-      live: "https://example.com",
-      category: "Dashboard"
-    },
+      title: "AR Portfolio",
+      shortDescription: "Augmented reality showcase",
+      fullDescription: "A mobile AR experience built with AR.js that lets viewers explore my projects in 3D space by scanning QR codes placed around physical locations.",
+      tags: ["AR.js", "Three.js", "A-Frame", "React"],
+      githubUrl: "#",
+      liveUrl: "#"
+    }
   ];
 
-  const filters = ['All', 'Web App', 'Website', 'Dashboard'];
-
-  const filteredProjects = activeFilter === 'All' 
-    ? projects 
-    : projects.filter(project => project.category === activeFilter);
-
   return (
-    <section id="projects" className="py-20 px-6 bg-gray-50 dark:bg-gray-900">
+    <section id="projects" className="py-20 px-4 bg-gray-950">
       <div className="container mx-auto">
-        {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">
-            My <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Projects</span>
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">Interactive</span> Creations
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Here are some of my selected works. Each project was built to solve specific problems and deliver value.
+          <p className="text-purple-200 max-w-2xl mx-auto">
+            Projects that blend technology and creativity for immersive experiences
           </p>
-        </motion.div>
+        </div>
 
-        {/* Filter Buttons */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          viewport={{ once: true }}
-          className="flex flex-wrap justify-center gap-3 mb-12"
-        >
-          {filters.map(filter => (
-            <button
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${activeFilter === filter 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}`}
-            >
-              {filter}
-            </button>
-          ))}
-        </motion.div>
-
-        {/* Projects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProjects.map((project, index) => (
-            <motion.div
-              key={project.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300"
-            >
-              {/* Project Image */}
-              <div className="h-48 overflow-hidden">
-                <img 
-                  src={project.image} 
-                  alt={project.title}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-
-              {/* Project Content */}
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">{project.title}</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">{project.description}</p>
-                
-                {/* Tags */}
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {project.tags.map(tag => (
-                    <span 
-                      key={tag}
-                      className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-full"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Links */}
-                <div className="flex gap-4">
-                  <a 
-                    href={project.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-purple-400 transition-colors"
-                  >
-                    <FiGithub /> Code
-                  </a>
-                  <a 
-                    href={project.live}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-purple-400 transition-colors"
-                  >
-                    <FiExternalLink /> Live Demo
-                  </a>
-                </div>
-              </div>
-            </motion.div>
+          {projects.map(project => (
+            <ProjectCard key={project.id} project={project} />
           ))}
         </div>
 
-        {/* View More Button */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          viewport={{ once: true }}
-          className="text-center mt-12"
-        >
-          <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all">
-            View All Projects
+        <div className="mt-16 text-center">
+          <button className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-medium hover:shadow-purple-500/20 hover:shadow-lg transition-all">
+            Explore More Projects
           </button>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
