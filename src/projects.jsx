@@ -1,171 +1,205 @@
-import { useState, useRef } from 'react';
-import { motion, useMotionTemplate, useMotionValue, useSpring, animate } from 'framer-motion';
-import { FiGithub, FiExternalLink, FiArrowRight } from 'react-icons/fi';
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { FiGithub, FiExternalLink, FiCode, FiServer } from "react-icons/fi";
 
-const ProjectCard = ({ project }) => {
-  const [isFlipped, setIsFlipped] = useState(false);
-  const cardRef = useRef(null);
-  
-  // 3D tilt effect
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const xSpring = useSpring(x, { stiffness: 300, damping: 20 });
-  const ySpring = useSpring(y, { stiffness: 300, damping: 20 });
-  const transform = useMotionTemplate`rotateX(${ySpring}deg) rotateY(${xSpring}deg)`;
-
-  const handleMouseMove = (e) => {
-    if (!cardRef.current) return;
-    
-    const rect = cardRef.current.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    const rotateY = ((mouseX - width / 2) / width) * 20;
-    const rotateX = ((mouseY - height / 2) / height) * -20;
-    
-    x.set(rotateX);
-    y.set(rotateY);
-  };
-
-  const handleMouseLeave = () => {
-    animate(x, 0, { type: 'spring', stiffness: 300, damping: 20 });
-    animate(y, 0, { type: 'spring', stiffness: 300, damping: 20 });
-  };
-
+const ProjectCard = ({ project, onClick }) => {
   return (
     <motion.div
-      ref={cardRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      onClick={() => setIsFlipped(!isFlipped)}
-      style={{ transform, transformStyle: 'preserve-3d' }}
-      className="cursor-pointer perspective-1000 h-96 w-full"
-      whileHover={{ scale: 1.03 }}
-      whileTap={{ scale: 0.97 }}
+      className="w-full sm:w-[350px] bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl overflow-hidden border border-gray-700 shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
+      whileHover={{ y: -5 }}
+      onClick={onClick}
     >
-      <motion.div
-        className="relative w-full h-full transition-transform duration-500"
-        style={{ transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}
-        animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        {/* Front Side */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900 to-indigo-800 rounded-3xl p-6 backface-hidden flex flex-col justify-between">
-          <div>
-            <h3 className="text-2xl font-bold text-white mb-2">{project.title}</h3>
-            <p className="text-purple-200">{project.shortDescription}</p>
-          </div>
-          <div className="flex justify-between items-center">
-            <div className="flex gap-2">
-              {project.tags.slice(0, 3).map(tag => (
-                <span key={tag} className="px-3 py-1 bg-white/10 text-white/80 rounded-full text-sm">
-                  {tag}
-                </span>
-              ))}
-            </div>
-            <button className="p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition">
-              <FiArrowRight />
-            </button>
-          </div>
+      {/* Header with accent bar */}
+      <div className="h-2 bg-gradient-to-r from-blue-500 to-purple-600"></div>
+      
+      <div className="p-6">
+        {/* Tech stack indicator */}
+        <div className="flex gap-2 mb-3">
+          {project.backend && (
+            <span className="flex items-center gap-1 px-2 py-1 bg-blue-900/30 text-blue-400 rounded text-xs">
+              <FiServer size={12} /> Backend
+            </span>
+          )}
+          {project.frontend && (
+            <span className="flex items-center gap-1 px-2 py-1 bg-purple-900/30 text-purple-400 rounded text-xs">
+              <FiCode size={12} /> Frontend
+            </span>
+          )}
         </div>
-
-        {/* Back Side */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-800 to-purple-900 rounded-3xl p-6 backface-hidden flex flex-col justify-between rotate-y-180">
-          <div>
-            <h3 className="text-2xl font-bold text-white mb-4">{project.title}</h3>
-            <p className="text-purple-200 mb-4">{project.fullDescription}</p>
-            <div className="flex flex-wrap gap-2 mb-6">
-              {project.tags.map(tag => (
-                <span key={tag} className="px-3 py-1 bg-white/10 text-white/80 rounded-full text-sm">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="flex gap-4">
-            <a 
-              href={project.githubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition"
-              onClick={e => e.stopPropagation()}
+        
+        {/* Project title */}
+        <h3 className="text-xl font-bold text-white mb-2">{project.title}</h3>
+        
+        {/* Description with fade effect */}
+        <p className="text-gray-400 text-sm line-clamp-3 mb-4">
+          {project.shortDescription}
+        </p>
+        
+        {/* Tech tags with hover effect */}
+        <div className="flex flex-wrap gap-2">
+          {project.tags.slice(0, 4).map(tag => (
+            <motion.span 
+              key={tag}
+              className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded"
+              whileHover={{ scale: 1.05 }}
             >
-              <FiGithub /> Code
-            </a>
-            <a 
-              href={project.liveUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 bg-white text-purple-900 rounded-lg hover:bg-white/90 transition"
-              onClick={e => e.stopPropagation()}
-            >
-              <FiExternalLink /> Live Demo
-            </a>
-          </div>
+              {tag}
+            </motion.span>
+          ))}
+          {project.tags.length > 4 && (
+            <span className="px-2 py-1 bg-gray-800 text-gray-500 text-xs rounded">
+              +{project.tags.length - 4}
+            </span>
+          )}
         </div>
-      </motion.div>
+      </div>
     </motion.div>
   );
 };
 
-const ProjectsSection = () => {
+export default function ProjectsSection() {
+  const [selectedProject, setSelectedProject] = useState(null);
+
   const projects = [
     {
       id: 1,
-      title: "Neon Dreams",
-      shortDescription: "Interactive generative art experience",
-      fullDescription: "A WebGL-powered art generator that creates unique neon landscapes using procedural algorithms. Users can interact with parameters to create their own digital artworks.",
-      tags: ["Three.js", "GLSL", "React", "Generative Art"],
-      githubUrl: "#",
-      liveUrl: "#"
+      title: "Microservices Architecture",
+      shortDescription: "Distributed .NET Core system with Docker containers and Kubernetes orchestration.",
+      fullDescription: "Built a scalable microservices architecture using CQRS pattern, Event Sourcing, and gRPC for inter-service communication.",
+      tags: [".NET 7", "Kubernetes", "Docker", "gRPC", "CQRS", "Event Sourcing"],
+      backend: true,
+      github: "#",
+      demo: "#"
     },
     {
       id: 2,
-      title: "Audio Visualizer",
-      shortDescription: "Real-time music visualization",
-      fullDescription: "A browser-based audio analyzer that creates dynamic visual representations of music using the Web Audio API. Features multiple visualization modes and custom color schemes.",
-      tags: ["Web Audio API", "Canvas", "React", "D3.js"],
-      githubUrl: "#",
-      liveUrl: "#"
+      title: "Enterprise ERP Solution",
+      shortDescription: "Full-stack business management system with Blazor WASM frontend.",
+      shortDescription: "Modern ERP system with role-based access, reporting dashboard, and inventory management.",
+      tags: ["Blazor", ".NET 6", "EF Core", "SQL Server", "Azure AD"],
+      backend: true,
+      frontend: true,
+      github: "#",
+      demo: "#"
     },
     {
       id: 3,
-      title: "AR Portfolio",
-      shortDescription: "Augmented reality showcase",
-      fullDescription: "A mobile AR experience built with AR.js that lets viewers explore my projects in 3D space by scanning QR codes placed around physical locations.",
-      tags: ["AR.js", "Three.js", "A-Frame", "React"],
-      githubUrl: "#",
-      liveUrl: "#"
+      title: "AI Document Processor",
+      shortDescription: "ML.NET service for automated document classification and data extraction.",
+      fullDescription: "Implemented machine learning pipeline for processing PDF/Word documents with 92% accuracy using custom-trained models.",
+      tags: ["ML.NET", "Azure Functions", "Cognitive Services", "C#"],
+      backend: true,
+      github: "#",
+      demo: "#"
     }
   ];
 
   return (
     <section id="projects" className="py-20 px-4 bg-gray-950">
       <div className="container mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">Interactive</span> Creations
-          </h2>
-          <p className="text-purple-200 max-w-2xl mx-auto">
-            Projects that blend technology and creativity for immersive experiences
-          </p>
-        </div>
+        <motion.h2 
+          className="text-4xl md:text-5xl font-bold text-center mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+            Enterprise Solutions
+          </span>
+        </motion.h2>
 
+        {/* Projects Grid - Responsive Columns */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {projects.map(project => (
-            <ProjectCard key={project.id} project={project} />
+            <ProjectCard 
+              key={project.id} 
+              project={project}
+              onClick={() => setSelectedProject(project)}
+            />
           ))}
         </div>
 
-        <div className="mt-16 text-center">
-          <button className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-medium hover:shadow-purple-500/20 hover:shadow-lg transition-all">
-            Explore More Projects
-          </button>
-        </div>
+        {/* Project Modal */}
+        <AnimatePresence>
+          {selectedProject && (
+            <motion.div
+              className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedProject(null)}
+            >
+              <motion.div
+                className="bg-gray-900 border border-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                initial={{ scale: 0.95, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.95, y: 20 }}
+                onClick={e => e.stopPropagation()}
+              >
+                {/* Modal Header */}
+                <div className="sticky top-0 bg-gray-900 p-6 border-b border-gray-800 flex justify-between items-start">
+                  <div>
+                    <h3 className="text-2xl font-bold text-white">{selectedProject.title}</h3>
+                    <div className="flex gap-2 mt-2">
+                      {selectedProject.backend && (
+                        <span className="flex items-center gap-1 px-2 py-1 bg-blue-900/30 text-blue-400 rounded text-xs">
+                          <FiServer size={12} /> Backend
+                        </span>
+                      )}
+                      {selectedProject.frontend && (
+                        <span className="flex items-center gap-1 px-2 py-1 bg-purple-900/30 text-purple-400 rounded text-xs">
+                          <FiCode size={12} /> Frontend
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <button 
+                    className="p-2 text-gray-400 hover:text-white transition"
+                    onClick={() => setSelectedProject(null)}
+                  >
+                    <FiX size={24} />
+                  </button>
+                </div>
+
+                {/* Modal Content */}
+                <div className="p-6">
+                  <p className="text-gray-300 mb-6">{selectedProject.fullDescription}</p>
+                  
+                  <div className="mb-8">
+                    <h4 className="text-lg font-semibold text-white mb-3">Technologies Used</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProject.tags.map(tag => (
+                        <span key={tag} className="px-3 py-1 bg-gray-800 text-gray-300 rounded-full text-sm">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-4">
+                    <a
+                      href={selectedProject.github}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition"
+                    >
+                      <FiGithub /> View Code
+                    </a>
+                    <a
+                      href={selectedProject.demo}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-lg transition"
+                    >
+                      <FiExternalLink /> Live Demo
+                    </a>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );
-};
-
-export default ProjectsSection;
+}
