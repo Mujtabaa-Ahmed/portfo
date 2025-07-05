@@ -7,6 +7,7 @@ const HeroSection = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.8 } }
   };
 
+  
   const imageVariants = {
     hidden: { opacity: 0, scale: 0.8 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.8, delay: 0.2 } }
