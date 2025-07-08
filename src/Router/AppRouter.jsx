@@ -4,9 +4,9 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 
 import Home from '../Pages/Home/Home';
-import About from '../pages/About/About';
-import Projects from '../pages/Projects/Projects';
-import Skills from '../pages/Skills/Skills';
+import About from '../Pages/About/About';
+import Projects from '../Pages/Projects/Projects';
+import Skills from '../Pages/Skills/Skills';
 import Contact from '../Pages/Contact/Contact';
 import Donate from '../Pages/Donation/Donate';
 
